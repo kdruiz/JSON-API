@@ -20,13 +20,16 @@ class ViewController: UIViewController {
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var posterImageView: UIImageView!
     
+    var movieList:JSON?
+    var linkToMovie: String?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        exerciseOne()
-        exerciseTwo()
-        exerciseThree()
+        //exerciseOne()
+        //exerciseTwo()
+        //exerciseThree()
         
         let apiToContact = "https://itunes.apple.com/us/rss/topmovies/limit=25/json"
         // This code will call the iTunes top 25 movies endpoint listed above
@@ -39,7 +42,9 @@ class ViewController: UIViewController {
                     // Do what you need to with JSON here!
                     // The rest is all boiler plate code you'll use for API requests
                     
-                    
+                    self.movieList = json["feed"]["entry"]
+                    self.selectRandomMovie()
+                                        
                 }
             case .failure(let error):
                 print(error)
@@ -58,6 +63,35 @@ class ViewController: UIViewController {
     }
     
     @IBAction func viewOniTunesPressed(_ sender: AnyObject) {
+        if self.linkToMovie != nil {
+            UIApplication.shared.openURL(URL(string: self.linkToMovie!)!)
+        } else {
+            UIApplication.shared.openURL(URL(string: "https://www.apple.com")!)
+        }
+        
+    }
+    @IBAction func refereshMovie(_ sender: UIButton) {
+        self.selectRandomMovie()
+    }
+    
+    func selectRandomMovie() {
+        if let myMovieList = movieList {
+            let movieCount = UInt32(myMovieList.count)
+            let movieIndex = Int(arc4random_uniform(movieCount))
+            
+            
+            let selectedMovieData = myMovieList[movieIndex]
+            let selectedMovie = Movie(json: selectedMovieData)
+            
+            self.movieTitleLabel.text = "\(movieIndex). \(selectedMovie.name)"
+            self.rightsOwnerLabel.text = selectedMovie.rightsOwner
+            self.releaseDateLabel.text = selectedMovie.releaseDate
+            self.priceLabel.text = "$\(selectedMovie.price)"
+            self.loadPoster(urlString: selectedMovie.imageLink)
+            print("\(selectedMovie.imageLink)")
+            
+            self.linkToMovie = selectedMovie.link
+        }
         
     }
     
